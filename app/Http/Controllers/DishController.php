@@ -11,80 +11,96 @@ use Illuminate\Support\Facades\Response;
 class DishController extends Controller
 {
     public function index(Request $request)
-    {
-        // Dohvaćanje parametara upita za paginaciju
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+{
+    $perPage = $request->input('per_page', 10);
+    $page = $request->input('page', 1);
+    $tags = $request->input('tag');
+    $with = $request->input('with');
+    $tagIds = $request->input('tag');
 
-        $with = $request->input('with');
+    $query = Meal::query();
 
-        $query = Meal::query();
+    $withArray = explode(',', $with);
+    $withData = [];
 
-        //if (in_array('ingredients', $with)) {
-        //    $query->with('ingredients');
-        //}
-//
-        //if (in_array('category', $with)) {
-        //    $query->with('category');
-        //}
-//
-        //if (in_array('tags', $with)) {
-        //    $query->with('tags');
-        //}
-
-        $meals = Meal::with(['category', 'tags'])->paginate($perPage);
-
-        $meta = [
-            'currentPage' => $meals->currentPage(),
-            'totalItems' => $meals->total(),
-            'itemsPerPage' => $meals->perPage(),
-            'totalPages' => $meals->lastPage(),
-        ];
-        
-        $data = $meals->map(function ($meal) {
-            $tagId = $meal->tag_id; 
-            $tag = Tag::find($tagId); 
-
-            $ingredients = $meal->ingredients;
-
-            $formattedIngredients = $ingredients->map(function ($ingredient) {
-                return [
-                    'id' => $ingredient->id,
-                    'title' => $ingredient->title,
-                ];
-            });
-            
-            return [
-                'id' => $meal->id,
-                'title' => $meal->name,
-                'description' => $meal->description,
-                'status' => $meal->status,
-                'category' => [
-                    'id' => $meal->category->id,
-                    'title' => $meal->category->title,
-                ],
-                'tag' => [
-                    'id' => $tag->id,
-                    'title' => $tag->title,
-                ],
-                'ingredients' => $formattedIngredients->toArray(),
-            ];
-        });
-
-        $links = [
-            'prev' => $meals->previousPageUrl(),
-            'next' => $meals->nextPageUrl(),
-            'self' => $meals->url($meals->currentPage()),
-        ];
-
-        $response = [
-            'meta' => $meta,
-            'data' => $data,
-            'links' => $links,
-        ];
-
-        $formattedResponse = Response::json($response, 200, [], JSON_PRETTY_PRINT);
-
-        return $formattedResponse;
+    if (in_array('ingredients', $withArray)) {
+        $withData[] = 'ingredients';
     }
+
+    if (in_array('category', $withArray)) {
+        $withData[] = 'category';
+    }
+
+    if (in_array('tags', $withArray)) {
+        $withData[] = 'tags';
+    }
+
+    $tags = $request->input('tag');
+
+    if ($tags) {
+        $tagIds = explode(',', $tags);
+
+        foreach ($tagIds as $tagId) {
+            $query->whereHas('tags', function ($q) use ($tagId) {
+                $q->where('tag_id', $tagId);
+            });
+        }
+    }
+
+    $meals = $query->with($withData)->paginate($perPage);
+
+    $meta = [
+        'currentPage' => $meals->currentPage(),
+        'totalItems' => $meals->total(),
+        'itemsPerPage' => $meals->perPage(),
+        'totalPages' => $meals->lastPage(),
+    ];
+
+    $links = [
+        'prev' => $meals->previousPageUrl(),
+        'next' => $meals->nextPageUrl(),
+        'self' => $meals->url($meals->currentPage()),
+    ];
+
+    $response = [
+        'meta' => $meta,
+        'links' => $links,
+    ];
+
+    $response['data'] = $meals->map(function ($meal) use ($withArray) {
+        $tagId = $meal->tag_id; 
+        $tag = Tag::find($tagId); 
+        $data = [
+            'id' => $meal->id,
+            'title' => $meal->name,
+            'status' => $meal->created_at,
+        ];
+
+        if (in_array('ingredients', $withArray)) {
+            $data['ingredients'] = $meal->ingredients;
+        }
+
+        if (in_array('category', $withArray)) {
+            $data['category'] = [
+                'id' => $meal->category->id,
+                'title' => $meal->category->title,
+                'slug' => $meal->category->slug,
+            ];
+        }
+
+        if (in_array('tags', $withArray)) {
+            $data['tags'] = [
+                'id' => $tag->id,
+                'title' => $tag->title,
+                'slug' => $tag->slug,
+            ];
+        }
+
+        return $data;
+    });
+
+    $formattedResponse = Response::json($response, 200, [], JSON_PRETTY_PRINT);
+
+    return $formattedResponse;
+}
 }
