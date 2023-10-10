@@ -18,33 +18,19 @@ class DishController extends Controller
 
         $with = $request->input('with');
 
-        $mq = (new Meal)->newQuery();
-
         $query = Meal::query();
-        //Select which data to include in the response
-        $with = [];
-        if($request->has('with')) {
-            //For each selected object also fetch its translations
-            $with = $request->input('with');
-            foreach($with as $object) {
-                $with[] = $object . '.translations';
-            }
-        }
-        //Always include translations for meals
-        $with[] = 'translations';
-        $mq->with($with);
 
-        //Filter search by category ID
-        if($request->has('category')) {
-            $mq->byCategory($request->input('category'));
-        }
-
-        //Filter search by tags, every record must have every requested tag
-        if($request->has('tags')) {
-            $mq->byTags($request->input('tags'));
-        }
-
-        $meals = $query->paginate($perPage);
+        //if (in_array('ingredients', $with)) {
+        //    $query->with('ingredients');
+        //}
+//
+        //if (in_array('category', $with)) {
+        //    $query->with('category');
+        //}
+//
+        //if (in_array('tags', $with)) {
+        //    $query->with('tags');
+        //}
 
         $meals = Meal::with(['category', 'tags'])->paginate($perPage);
 
