@@ -13,7 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('croatian_categories', function (Blueprint $table) {
+        Schema::create('ingredients', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
             $table->text('title');
             $table->string('slug')->unique();
         });
@@ -26,10 +28,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('croatian_categories', function (Blueprint $table) {
+        Schema::table('ingredients', function (Blueprint $table) {
             $table->dropColumn('title');
-            $table->dropUnique('categories_slug_unique'); 
+            $table->dropUnique('ingredients_slug_unique'); 
             $table->dropColumn('slug');
         });
+        Schema::dropIfExists('ingredients');
     }
 };

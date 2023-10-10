@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('croatian_meals', function (Blueprint $table) {
+        Schema::create('croatian_tags', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->text('title');
+            $table->string('slug')->unique();
         });
     }
 
@@ -26,6 +28,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('croatian_meals');
+        Schema::table('croatian_tags', function (Blueprint $table) {
+            $table->dropColumn('title');
+            $table->dropUnique('tags_slug_unique'); 
+            $table->dropColumn('slug');
+        });
+        Schema::dropIfExists('croatian_tags');
     }
 };

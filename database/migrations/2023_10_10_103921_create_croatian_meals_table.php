@@ -13,9 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('meals', function (Blueprint $table) {
+        Schema::create('croatian_meals', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('name');
+            $table->text('description');
+            $table->decimal('price', 8, 2);
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('categories');
         });
     }
 
@@ -26,6 +31,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('meals');
+        Schema::table('croatian_meals', function (Blueprint $table) {
+            //
+        });
     }
 };

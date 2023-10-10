@@ -30,34 +30,36 @@ class Ingredients extends Seeder
             $numIngredients = mt_rand(2, 5);
             $ingredients = [];
             $slug = ''; 
+            $ingredientsHR = [];
         
             for ($i = 0; $i < $numIngredients; $i++) {
                 $ingredientName = $faker->randomElement([
                     $faker->dairyName(),
                     $faker->vegetableName(),
-                    $faker->fruitName(),
                     $faker->meatName(),
                     $faker->sauceName(),
                 ]);
         
                 $translatedIngredientName = $translator->translate($ingredientName);
 
-                $ingredients[] = $translatedIngredientName;
-                
+                $ingredients[] = $ingredientName;
+
+                $ingredientsHR[] = $translatedIngredientName;
+
+        
                 if ($i > 0) {
                     $slug .= '-';
                 }
                 $slug .= Str::slug($ingredientName);
             }
         
-            $titleHr = $translator->translate($ingredientName);
 
             Ingredient::create([
                 'title' => implode(', ', $ingredients),
                 'slug' => $slug,
             ]);
             CroatianIngredient::create([
-                'title' => implode(', ', $ingredients),
+                'title' => implode(', ', $ingredientsHR),
                 'slug' => $slug,
             ]);
         }

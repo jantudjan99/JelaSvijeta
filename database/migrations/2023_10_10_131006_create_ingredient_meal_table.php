@@ -13,19 +13,17 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('croatian_ingredients', function (Blueprint $table) {
+        Schema::create('ingredient_meal', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('ingredient_id');
+            $table->unsignedBigInteger('meal_id');
+            $table->decimal('quantity', 10, 2)->default(1.00); 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        Schema::dropIfExists('croatian_ingredients');
+        Schema::dropIfExists('ingredient_meal');
     }
 };
